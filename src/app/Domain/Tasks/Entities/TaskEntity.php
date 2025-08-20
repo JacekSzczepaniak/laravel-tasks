@@ -5,7 +5,8 @@ namespace App\Domain\Tasks\Entities;
 use App\Domain\Tasks\Enum\TaskStatus;
 use Carbon\CarbonImmutable;
 
-final class TaskEntity {
+final class TaskEntity
+{
     public function __construct(
         public readonly ?int $id,
         public readonly int $ownerId,
@@ -15,15 +16,18 @@ final class TaskEntity {
         public ?CarbonImmutable $dueAt,
         public ?\DateTimeImmutable $createdAt = null,
         public ?\DateTimeImmutable $updatedAt = null,
-    ) {}
+    ) {
+    }
 
-    public function complete(): void {
+    public function complete(): void
+    {
         if ($this->status !== TaskStatus::Done) {
             $this->status = TaskStatus::Done;
         }
     }
 
-    public function reschedule(CarbonImmutable $newDue): void {
+    public function reschedule(CarbonImmutable $newDue): void
+    {
         $this->dueAt = $newDue;
     }
 }

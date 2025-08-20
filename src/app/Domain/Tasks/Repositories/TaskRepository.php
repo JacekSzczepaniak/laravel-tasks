@@ -4,7 +4,8 @@ namespace App\Domain\Tasks\Repositories;
 
 use App\Domain\Tasks\Entities\TaskEntity;
 
-interface TaskRepository {
+interface TaskRepository
+{
     public function findForView(int $taskId, int $requesterId): ?TaskEntity;
     public function save(TaskEntity $task): TaskEntity;
     public function delete(int $taskId, int $requesterId): void;

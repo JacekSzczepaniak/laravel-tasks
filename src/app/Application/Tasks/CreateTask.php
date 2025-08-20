@@ -8,8 +8,11 @@ use App\Domain\Tasks\Repositories\TaskRepository;
 use Carbon\CarbonImmutable;
 use DateTimeInterface;
 
-final class CreateTask {
-    public function __construct(private TaskRepository $repo) {}
+final class CreateTask
+{
+    public function __construct(private TaskRepository $repo)
+    {
+    }
 
     public function __invoke(
         int $ownerId,

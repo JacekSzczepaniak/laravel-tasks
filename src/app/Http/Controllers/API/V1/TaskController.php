@@ -7,6 +7,7 @@ use App\Domain\Tasks\Enum\TaskStatus;
 use App\Http\Controllers\Controller;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
 use OpenApi\Annotations as OA;
@@ -73,7 +74,8 @@ class TaskController extends Controller
             ]);
     }
 
-    public function store(StoreTaskRequest $req, CreateTask $create) {
+    public function store(StoreTaskRequest $req, CreateTask $create): JsonResponse
+    {
         $e = $create(
             $req->user()->id,
             $req->input('title'),

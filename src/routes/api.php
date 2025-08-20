@@ -1,7 +1,7 @@
 <?php
+
 use App\Http\Controllers\API\V1\TaskController;
 use Illuminate\Support\Facades\Route;
-
 
 Route::middleware(['auth:sanctum', 'throttle:api'])
     ->prefix('v1')

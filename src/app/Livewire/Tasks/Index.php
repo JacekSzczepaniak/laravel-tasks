@@ -10,21 +10,19 @@ use App\Application\Tasks\UpdateTask;
 use App\Application\Tasks\DeleteTask;
 use App\Domain\Tasks\Enum\TaskStatus;
 use App\Domain\Tasks\Repositories\TaskRepository;
-use App\Infrastructure\Tasks\Models\Task as ETask;
 use App\Infrastructure\Tasks\Repositories\EloquentTaskRepository;
 use App\Models\User;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
 use Livewire\WithPagination;
 
 class Index extends Component
 {
-    use WithPagination, AuthorizesRequests;
+    use WithPagination;
+    use AuthorizesRequests;
 
     private ListTasksForUser $listTasks;
 
@@ -57,7 +55,7 @@ class Index extends Component
         return [
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'status' => ['nullable', Rule::in(array_map(fn($c) => $c->value, TaskStatus::cases()))],
+            'status' => ['nullable', Rule::in(array_map(fn ($c) => $c->value, TaskStatus::cases()))],
             'due_at' => ['required', 'date'],
         ];
     }
@@ -110,11 +108,7 @@ class Index extends Component
     }
 
     public function startEdit(int $taskId, TaskRepository $repo): void
-
     {
-//        $task = ETask::findOrFail($taskId);
-//
-//        Gate::authorize('update', $task);
         $task = $repo->findForView($taskId, auth()->id());
         if (!$task) {
             abort(404);
@@ -198,14 +192,14 @@ class Index extends Component
 
     public function toggleObserver(int $userId, AssignObserver $attach, RemoveObserver $detach): void
     {
-        if (!$this->observersTaskId) return;
+        if (!$this->observersTaskId) {
+            return;
+        }
 
         if (in_array($userId, $this->selectedObserverIds, true)) {
             $detach($this->observersTaskId, $userId, auth()->id());
             $this->selectedObserverIds = array_values(array_diff($this->selectedObserverIds, [$userId]));
         } else {
-            // właściciela nie dodajemy jako obserwatora - spodziewamy się walidacji w use-case,
-            // ale dla UX zatrzymujemy to również tutaj jeśli znamy ownera
             if ($userId === ($this->editingOwnerId ?? auth()->id())) {
                 return;
             }
@@ -214,16 +208,17 @@ class Index extends Component
         }
     }
 
-
     public function getObserverCandidatesProperty(): Collection|\Illuminate\Support\Collection
     {
-        if (!$this->observersTaskId) return collect();
+        if (!$this->observersTaskId) {
+            return collect();
+        }
 
         $q = User::query()->whereKeyNot(auth()->id());
 
         if (trim($this->observerSearch) !== '') {
-            $s = '%' . str_replace('%','', $this->observerSearch) . '%';
-            $q->where(function($qq) use ($s) {
+            $s = '%' . str_replace('%', '', $this->observerSearch) . '%';
+            $q->where(function ($qq) use ($s) {
                 $qq->where('name', 'like', $s)->orWhere('email', 'like', $s);
             });
         }

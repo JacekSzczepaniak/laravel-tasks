@@ -11,7 +11,9 @@ use DateTimeInterface;
 
 final class UpdateTask
 {
-    public function __construct(private TaskRepository $repo) {}
+    public function __construct(private TaskRepository $repo)
+    {
+    }
 
     /**
      * Adapter pod aktualne wywołanie w Livewire:

@@ -26,11 +26,13 @@ class Task extends Model
         'status' => TaskStatus::class,
     ];
 
-    public function owner(): BelongsTo {
+    public function owner(): BelongsTo
+    {
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function observers(): BelongsToMany {
+    public function observers(): BelongsToMany
+    {
         return $this->belongsToMany(User::class, 'task_observers')->withTimestamps();
     }
 }

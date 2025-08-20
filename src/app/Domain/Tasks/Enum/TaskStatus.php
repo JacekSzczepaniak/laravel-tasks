@@ -1,9 +1,9 @@
 <?php
 
-
 namespace App\Domain\Tasks\Enum;
 
-enum TaskStatus: string {
+enum TaskStatus: string
+{
     case Todo = 'todo';
     case InProgress = 'in_progress';
     case Done = 'done';
