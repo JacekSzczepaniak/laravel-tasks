@@ -2,15 +2,19 @@
 
 namespace App\Livewire\Tasks;
 
+use App\Application\Tasks\AssignObserver;
 use App\Application\Tasks\CreateTask;
 use App\Application\Tasks\ListTasksForUser;
+use App\Application\Tasks\RemoveObserver;
 use App\Application\Tasks\UpdateTask;
 use App\Application\Tasks\DeleteTask;
 use App\Domain\Tasks\Enum\TaskStatus;
+use App\Domain\Tasks\Repositories\TaskRepository;
 use App\Infrastructure\Tasks\Models\Task as ETask;
 use App\Infrastructure\Tasks\Repositories\EloquentTaskRepository;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Gate;
@@ -31,6 +35,7 @@ class Index extends Component
 
     // Formularz create/edit
     public ?int $editingId = null;
+    private ?int $editingOwnerId = null;
     public string $title = '';
     public ?string $description = null;
     public ?string $statusForm = 'todo';
@@ -104,18 +109,23 @@ class Index extends Component
         $this->dispatch('open-task-modal');
     }
 
-    public function startEdit(int $taskId): void
-    {
-        $task = ETask::findOrFail($taskId);
-//        $task = $this->listTasks->findById($taskId);
+    public function startEdit(int $taskId, TaskRepository $repo): void
 
-        Gate::authorize('update', $task);
+    {
+//        $task = ETask::findOrFail($taskId);
+//
+//        Gate::authorize('update', $task);
+        $task = $repo->findForView($taskId, auth()->id());
+        if (!$task) {
+            abort(404);
+        }
+
 
         $this->editingId = $task->id;
         $this->title = $task->title;
         $this->description = $task->description;
         $this->statusForm = $task->status->value ?? 'todo';
-        $this->due_at = $task->due_at?->format('Y-m-d\TH:i');
+        $this->due_at = $task->dueAt?->format('Y-m-d\TH:i');
 
         $this->dispatch('open-task-modal');
     }
@@ -124,20 +134,28 @@ class Index extends Component
     {
         $this->validate();
 
-        $payload = [
-            'title' => $this->title,
-            'description' => $this->description,
-            'status' => $this->statusForm,
-            'due_at' => $this->due_at ? Carbon::parse($this->due_at) : null,
-        ];
-
         if ($this->editingId) {
-            $task = ETask::findOrFail($this->editingId);
-            Gate::authorize('update', $task);
-            $update->handle($task, $payload);
+            $status = $this->statusForm ? TaskStatus::tryFrom($this->statusForm) : null;
+            $dueAt = $this->due_at ?: null;
+
+            $update(
+                id: $this->editingId,
+                ownerId: (int) ($this->editingOwnerId ?? auth()->id()),
+                title: $this->title,
+                description: $this->description,
+                status: $status,
+                dueAt: $dueAt
+            );
         } else {
+            $payload = [
+                'title' => $this->title,
+                'description' => $this->description,
+                'status' => $this->statusForm,
+                'due_at' => $this->due_at ? Carbon::parse($this->due_at) : null,
+            ];
             $create->handle(auth()->id(), $payload);
         }
+
 
         $this->resetForm();
         $this->dispatch('close-task-modal');
@@ -146,10 +164,7 @@ class Index extends Component
 
     public function delete(int $taskId, DeleteTask $delete): void
     {
-        $task = ETask::findOrFail($taskId);
-        Gate::authorize('delete', $task);
-
-        $delete->handle($task);
+        $delete($taskId, auth()->id());
         $this->dispatch('toast', body: 'Deleted');
         $this->resetPage();
     }
@@ -165,38 +180,42 @@ class Index extends Component
 
     /* ---------- Observers ---------- */
 
-    public function openObservers(int $taskId): void
+    public function openObservers(int $taskId, TaskRepository $repo): void
     {
-        $task = ETask::findOrFail($taskId);
-        Gate::authorize('update', $task);
+        $entity = $repo->findForView($taskId, auth()->id());
+        if (!$entity) {
+            abort(404);
+        }
 
-        $this->observersTaskId = $task->id;
-        $this->selectedObserverIds = $task->observers()->pluck('users.id')->all();
+        $observerIds = $repo->getObserverIds($taskId, auth()->id());
+
+        $this->observersTaskId = $taskId;
+        $this->selectedObserverIds = $observerIds;
         $this->observerSearch = '';
 
         $this->dispatch('open-observers-modal');
     }
 
-    public function toggleObserver(int $userId): void
+    public function toggleObserver(int $userId, AssignObserver $attach, RemoveObserver $detach): void
     {
         if (!$this->observersTaskId) return;
 
-        $task = ETask::findOrFail($this->observersTaskId);
-        Gate::authorize('update', $task);
-
-        // właściciela nie dodajemy jako obserwatora
-        if ($userId === $task->user_id) return;
-
         if (in_array($userId, $this->selectedObserverIds, true)) {
-            $task->observers()->detach($userId);
+            $detach($this->observersTaskId, $userId, auth()->id());
             $this->selectedObserverIds = array_values(array_diff($this->selectedObserverIds, [$userId]));
         } else {
-            $task->observers()->attach($userId);
+            // właściciela nie dodajemy jako obserwatora - spodziewamy się walidacji w use-case,
+            // ale dla UX zatrzymujemy to również tutaj jeśli znamy ownera
+            if ($userId === ($this->editingOwnerId ?? auth()->id())) {
+                return;
+            }
+            $attach($this->observersTaskId, $userId, auth()->id());
             $this->selectedObserverIds[] = $userId;
         }
     }
 
-    public function getObserverCandidatesProperty()
+
+    public function getObserverCandidatesProperty(): Collection|\Illuminate\Support\Collection
     {
         if (!$this->observersTaskId) return collect();
 

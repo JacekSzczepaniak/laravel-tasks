@@ -14,5 +14,5 @@ interface TaskRepository {
     public function assignObserver(int $taskId, int $observerId, int $requesterId): void;
     public function removeObserver(int $taskId, int $observerId, int $requesterId): void;
     public function paginateForUser(int $userId, array $filters = [], int $perPage = 15, int $page = 1);
-
+    public function getObserverIds(int $taskId, int $requesterId): array;
 }

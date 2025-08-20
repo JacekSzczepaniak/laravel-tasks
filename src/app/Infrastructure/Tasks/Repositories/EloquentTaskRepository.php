@@ -148,4 +148,13 @@ final class EloquentTaskRepository implements TaskRepository
         return $paginator;
     }
 
+    public function getObserverIds(int $taskId, int $requesterId): array
+    {
+        $task = Task::whereKey($taskId)
+            ->where('user_id', $requesterId)
+            ->firstOrFail();
+
+        return $task->observers()->pluck('users.id')->all();
+    }
+
 }
