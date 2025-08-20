@@ -1,0 +1,185 @@
+openapi: 3.0.3
+info:
+  title: Tasks API
+  version: 1.0.0
+  description: API do zarządzania zadaniami (owner + obserwatorzy)
+servers:
+  - url: http://localhost:8080/api
+    description: Local (Nginx)
+security:
+  - sanctum: []
+components:
+  securitySchemes:
+    sanctum:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Task:
+      type: object
+      required: [id, owner_id, title, status]
+      properties:
+        id: { type: integer, example: 123 }
+        owner_id: { type: integer, example: 5 }
+        title: { type: string, example: "My Task" }
+        description: { type: string, nullable: true, example: "Optional notes" }
+        status:
+          type: string
+          enum: [todo, in_progress, done]
+          example: todo
+        due_at: { type: string, format: date-time, nullable: true, example: "2025-08-12T10:00:00Z" }
+        created_at: { type: string, format: date-time, nullable: true }
+        updated_at: { type: string, format: date-time, nullable: true }
+    TaskList:
+      type: object
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/Task' }
+        meta:
+          type: object
+          properties:
+            current_page: { type: integer, example: 1 }
+            per_page: { type: integer, example: 15 }
+            total: { type: integer, example: 123 }
+            last_page: { type: integer, example: 9 }
+
+paths:
+  /v1/tasks:
+    get:
+      summary: Lista zadań (owner + obserwowane)
+      parameters:
+        - in: query
+          name: scope
+          schema: { type: string, enum: [owned, observed, all], default: all }
+        - in: query
+          name: status
+          schema: { type: string, enum: [todo, in_progress, done] }
+        - in: query
+          name: due_from
+          schema: { type: string, format: date-time }
+        - in: query
+          name: due_to
+          schema: { type: string, format: date-time }
+        - in: query
+          name: sort
+          schema: { type: string, example: "due_at,-created_at" }
+        - in: query
+          name: page
+          schema: { type: integer, default: 1 }
+        - in: query
+          name: per_page
+          schema: { type: integer, default: 15 }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TaskList' }
+    post:
+      summary: Utwórz zadanie
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title]
+              properties:
+                title: { type: string }
+                description: { type: string, nullable: true }
+                status: { type: string, enum: [todo, in_progress, done] }
+                due_at: { type: string, format: date-time, nullable: true }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Task' }
+        '422':
+          description: Validation error
+  /v1/tasks/{id}:
+    get:
+      summary: Szczegóły zadania (owner lub obserwator)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Task' }
+        '403': { description: Forbidden }
+        '404': { description: Not found }
+    put:
+      summary: Aktualizacja zadania (tylko owner)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: { type: string }
+                description: { type: string, nullable: true }
+                status: { type: string, enum: [todo, in_progress, done] }
+                due_at: { type: string, format: date-time, nullable: true }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Task' }
+        '403': { description: Forbidden }
+        '404': { description: Not found }
+    delete:
+      summary: Usuń zadanie (tylko owner)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        '204': { description: No Content }
+        '403': { description: Forbidden }
+        '404': { description: Not found }
+
+  /v1/tasks/{id}/observers/{userId}:
+    post:
+      summary: Dodaj obserwatora (tylko owner)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+        - in: path
+          name: userId
+          required: true
+          schema: { type: integer }
+      responses:
+        '204': { description: No Content }
+        '403': { description: Forbidden }
+        '404': { description: Not found }
+    delete:
+      summary: Usuń obserwatora (tylko owner)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+        - in: path
+          name: userId
+          required: true
+          schema: { type: integer }
+      responses:
+        '204': { description: No Content }
+        '403': { description: Forbidden }
+        '404': { description: Not found }
