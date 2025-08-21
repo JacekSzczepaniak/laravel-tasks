@@ -11,10 +11,20 @@ final readonly class ListTasksForUser
     public function __construct(private TaskRepository $repo)
     {
     }
+    /**
+     * @param array<string, mixed> $filters
+     * @return array<int, TaskEntity>
+     */
     public function __invoke(int $userId, array $filters = []): array
     {
         return $this->repo->listForUser($userId, $filters);
     }
+
+    /**
+     * @param array<string, mixed> $filters
+     * @return LengthAwarePaginator<int, TaskEntity>
+    */
+
     public function paginate(int $userId, array $filters = [], int $perPage = 15, int $page = 1): LengthAwarePaginator
     {
         return $this->repo->paginateForUser($userId, $filters, $perPage, $page);

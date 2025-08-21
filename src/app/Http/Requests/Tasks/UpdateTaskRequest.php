@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Tasks;
 
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use App\Domain\Tasks\Enum\TaskStatus;
@@ -14,6 +15,9 @@ class UpdateTaskRequest extends FormRequest
         return true;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function rules(): array
     {
         return [
@@ -24,7 +28,7 @@ class UpdateTaskRequest extends FormRequest
         ];
     }
 
-    public function withValidator($validator)
+    public function withValidator(Validator $validator): void
     {
         $validator->after(function ($v) {
             /** @var Task|null $task */
@@ -39,10 +43,10 @@ class UpdateTaskRequest extends FormRequest
                 return;
             }
 
-            if (method_exists(TaskStatus::class, 'canTransition')
-                && !TaskStatus::canTransition($task->status, $parsed)) {
+            if (!$task->status->canTransition($parsed)) {
                 $v->errors()->add('status', __('Invalid status transition.'));
             }
         });
     }
+
 }

@@ -7,6 +7,9 @@ use App\Infrastructure\Tasks\Models\Task;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
+/**
+ * @extends Factory<Task>
+ */
 class TaskFactory extends Factory
 {
     protected $model = Task::class;

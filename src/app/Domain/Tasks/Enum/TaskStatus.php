@@ -7,13 +7,23 @@ enum TaskStatus: string
     case Todo = 'todo';
     case InProgress = 'in_progress';
     case Done = 'done';
-    public static function canTransition(self $from, self $to): bool
+
+    /**
+     * @return list<string>
+     */
+    public function nextAllowed(): array
     {
         $map = [
-            self::Todo->value => [self::InProgress->value, self::Done->value],
-            self::InProgress->value => [self::Done->value, self::Todo->value],
+            self::Todo->value => ['in_progress', 'done'],
+            self::InProgress->value => ['done', 'todo'],
             self::Done->value => [],
         ];
-        return in_array($to->value, $map[$from->value] ?? [], true);
+
+        return $map[$this->value];
+    }
+
+    public function canTransition(self $to): bool
+    {
+        return in_array($to->value, $this->nextAllowed(), true);
     }
 }

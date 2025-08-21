@@ -157,6 +157,7 @@
       <excludeFolder url="file://$MODULE_DIR$/src/vendor/webmozart/assert" />
       <excludeFolder url="file://$MODULE_DIR$/src/vendor/zircote/swagger-php" />
       <excludeFolder url="file://$MODULE_DIR$/src/vendor/livewire/livewire" />
+      <excludeFolder url="file://$MODULE_DIR$/src/var/cache" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

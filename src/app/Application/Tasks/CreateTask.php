@@ -33,6 +33,9 @@ final class CreateTask
     }
 
     /** Adapter pod aktualne wywołanie w Livewire */
+    /**
+     * @param array<string, mixed> $data
+     */
     public function handle(int $ownerId, array $data): TaskEntity
     {
         $status = isset($data['status'])

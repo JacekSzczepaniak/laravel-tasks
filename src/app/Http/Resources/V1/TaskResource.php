@@ -2,35 +2,37 @@
 
 namespace App\Http\Resources\V1;
 
+use App\Infrastructure\Tasks\Models\Task;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Carbon;
 
 class TaskResource extends JsonResource
 {
+
+    /**
+     * @return array<string, mixed>
+     */
     public function toArray($request): array
     {
-        $id = $this->id ?? null;
-        $ownerId = $this->ownerId ?? $this->user_id ?? null;
+        /** @var Task $task */
+        $task = $this->resource;
 
-        $status = $this->status instanceof \BackedEnum
-            ? $this->status->value
-            : (string) $this->status;
+        $id = $task->id ?? null;
+        $ownerId = $task->ownerId ?? $task->user_id ?? null;
+        $status = $task->status->value;
 
-        $rawDue = $this->dueAt ?? $this->due_at ?? null;
+        $rawDue = $task->dueAt ?? $task->due_at ?? null;
         $dueIso = $rawDue ? Carbon::parse($rawDue)->toISOString() : null;
-
-        $createdIso = isset($this->created_at) ? Carbon::parse($this->created_at)->toISOString() : null;
-        $updatedIso = isset($this->updated_at) ? Carbon::parse($this->updated_at)->toISOString() : null;
 
         return [
             'id' => $id,
             'owner_id' => $ownerId,
-            'title' => $this->title,
-            'description' => $this->description,
+            'title' => $task->title,
+            'description' => $task->description,
             'status' => $status,
             'due_at' => $dueIso,
-            'created_at' => $createdIso,
-            'updated_at' => $updatedIso,
+            'created_at' => isset($task->created_at) ? Carbon::parse($task->created_at)->toISOString() : null,
+            'updated_at' => isset($task->updated_at) ? Carbon::parse($task->updated_at)->toISOString() : null,
         ];
     }
 }

@@ -8,6 +8,7 @@ use App\Infrastructure\Tasks\Models\Task;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Pagination\LengthAwarePaginator as PaginatorImpl;
 use Illuminate\Support\Str;
 
 final class EloquentTaskRepository implements TaskRepository
@@ -33,7 +34,7 @@ final class EloquentTaskRepository implements TaskRepository
         $m->title = $e->title;
         $m->description = $e->description;
         $m->status = $e->status;
-        $m->due_at = $e->dueAt?->toDateTimeString();
+        $m->due_at = $e->dueAt;
         return $m;
     }
 
@@ -96,6 +97,9 @@ final class EloquentTaskRepository implements TaskRepository
     }
 
 
+    /**
+     * @return LengthAwarePaginator<int, TaskEntity>
+     */
     public function paginateForUser(int $userId, array $filters = [], int $perPage = 15, int $page = 1): LengthAwarePaginator
     {
         $q = Task::query();
@@ -140,7 +144,7 @@ final class EloquentTaskRepository implements TaskRepository
         if (!empty($filters['q'])) {
             $term = trim((string) $filters['q']);
             if ($term !== '') {
-                $termEsc = str_replace(['%', '_'], ['\%','\_'], $term);
+                $termEsc = str_replace(['%', '_'], ['\\%','\\_'], $term);
                 $like = '%'.$termEsc.'%';
 
                 $q->where(function (Builder $qq) use ($like) {
@@ -150,15 +154,25 @@ final class EloquentTaskRepository implements TaskRepository
             }
         }
 
-        $paginator = $q->paginate($perPage, ['*'], 'page', $page);
+        $eloquentPaginator = $q->paginate($perPage, ['*'], 'page', $page);
 
-        $paginator->setCollection(
-            $paginator->getCollection()->map(fn ($m) => $this->mapToEntity($m))
+        $items = $eloquentPaginator->getCollection()->map(fn (Task $m) => $this->mapToEntity($m));
+
+        return new PaginatorImpl(
+            $items,
+            $eloquentPaginator->total(),
+            $eloquentPaginator->perPage(),
+            $eloquentPaginator->currentPage(),
+            [
+                'path' => $eloquentPaginator->path(),
+                'pageName' => $eloquentPaginator->getPageName(),
+            ]
         );
-
-        return $paginator;
     }
 
+    /**
+     * @return array<int, int>
+     */
     public function getObserverIds(int $taskId, int $requesterId): array
     {
         $task = Task::whereKey($taskId)

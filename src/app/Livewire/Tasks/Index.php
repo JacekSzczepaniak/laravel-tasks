@@ -12,10 +12,12 @@ use App\Domain\Tasks\Enum\TaskStatus;
 use App\Domain\Tasks\Repositories\TaskRepository;
 use App\Infrastructure\Tasks\Repositories\EloquentTaskRepository;
 use App\Models\User;
+use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
+use Illuminate\View\View;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -24,14 +26,10 @@ class Index extends Component
     use WithPagination;
     use AuthorizesRequests;
 
-    private ListTasksForUser $listTasks;
-
-    // Filtry/lista
     public string $scope = 'all'; // all|owned|observed
     public ?string $status = null; // todo|in_progress|done|null
     public int $perPage = 10;
 
-    // Formularz create/edit
     public ?int $editingId = null;
     private ?int $editingOwnerId = null;
     public string $title = '';
@@ -42,13 +40,15 @@ class Index extends Component
     // Panel obserwatorów
     public ?int $observersTaskId = null;
     public string $observerSearch = '';
+
+    /** @var array<int, int> */
     public array $selectedObserverIds = [];
     public string $q = ''; // fraza wyszukiwania
 
-    public function boot(ListTasksForUser $listTasks)
-    {
-        $this->listTasks = $listTasks;
-    }
+
+    /**
+     * @return array<string, mixed>
+     */
 
     protected function rules(): array
     {
@@ -60,6 +60,9 @@ class Index extends Component
         ];
     }
 
+    /**
+     * @return array<string, string>
+     */
     protected function messages(): array
     {
         return [
@@ -70,14 +73,14 @@ class Index extends Component
         ];
     }
 
-    public function updating($name, $value): void
+    public function updating(string $name, mixed $value): void
     {
         if (in_array($name, ['scope','status','perPage','q'])) {
             $this->resetPage();
         }
     }
 
-    public function render(EloquentTaskRepository $repo)
+    public function render(EloquentTaskRepository $repo): View
     {
         $filters = [
             'scope' => $this->scope,
@@ -114,7 +117,7 @@ class Index extends Component
             abort(404);
         }
 
-
+        $this->editingOwnerId = $task->ownerId;
         $this->editingId = $task->id;
         $this->title = $task->title;
         $this->description = $task->description;
@@ -208,6 +211,9 @@ class Index extends Component
         }
     }
 
+    /**
+     * @return \Illuminate\Database\Eloquent\Collection<int, User>
+ */
     public function getObserverCandidatesProperty(): Collection|\Illuminate\Support\Collection
     {
         if (!$this->observersTaskId) {

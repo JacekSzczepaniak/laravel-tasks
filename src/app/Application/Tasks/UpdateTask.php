@@ -5,7 +5,6 @@ namespace App\Application\Tasks;
 use App\Domain\Tasks\Entities\TaskEntity;
 use App\Domain\Tasks\Enum\TaskStatus;
 use App\Domain\Tasks\Repositories\TaskRepository;
-use App\Infrastructure\Tasks\Models\Task as ETask;
 use Carbon\CarbonImmutable;
 use DateTimeInterface;
 
@@ -16,10 +15,9 @@ final class UpdateTask
     }
 
     /**
-     * Adapter pod aktualne wywołanie w Livewire:
-     * $update->handle($eloquentTask, $payload)
+     * @param array<string, mixed> $data
      */
-    public function handle(ETask $task, array $data): TaskEntity
+    public function handle(int $id, int $ownerId, array $data): TaskEntity
     {
         $status = isset($data['status'])
             ? TaskStatus::tryFrom($data['status'])
@@ -33,8 +31,8 @@ final class UpdateTask
         }
 
         return $this->__invoke(
-            id: (int) $task->id,
-            ownerId: (int) ($task->owner_id ?? $task->user_id),
+            id: $id,
+            ownerId: $ownerId,
             title: $data['title'],
             description: $data['description'] ?? null,
             status: $status,
