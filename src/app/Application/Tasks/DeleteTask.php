@@ -12,10 +12,6 @@ final class DeleteTask
         $this->handle($task);
     }
 
-    /**
-     * Adapter pod aktualne wywołanie w Livewire:
-     * $delete->handle($eloquentTask)
-     */
     public function handle(Task $task): void
     {
         $task->delete();

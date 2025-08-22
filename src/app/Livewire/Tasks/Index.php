@@ -4,7 +4,6 @@ namespace App\Livewire\Tasks;
 
 use App\Application\Tasks\AssignObserver;
 use App\Application\Tasks\CreateTask;
-use App\Application\Tasks\ListTasksForUser;
 use App\Application\Tasks\RemoveObserver;
 use App\Application\Tasks\UpdateTask;
 use App\Application\Tasks\DeleteTask;
@@ -12,7 +11,6 @@ use App\Domain\Tasks\Enum\TaskStatus;
 use App\Domain\Tasks\Repositories\TaskRepository;
 use App\Infrastructure\Tasks\Repositories\EloquentTaskRepository;
 use App\Models\User;
-use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Carbon;
@@ -36,14 +34,12 @@ class Index extends Component
     public ?string $description = null;
     public ?string $statusForm = 'todo';
     public ?string $due_at = null; // ISO datetime-local
-
-    // Panel obserwatorów
     public ?int $observersTaskId = null;
     public string $observerSearch = '';
 
     /** @var array<int, int> */
     public array $selectedObserverIds = [];
-    public string $q = ''; // fraza wyszukiwania
+    public string $q = '';
 
 
     /**
