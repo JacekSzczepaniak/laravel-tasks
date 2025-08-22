@@ -32,7 +32,6 @@ final class CreateTask
         return $this->repo->save($e);
     }
 
-    /** Adapter pod aktualne wywołanie w Livewire */
     /**
      * @param array<string, mixed> $data
      */

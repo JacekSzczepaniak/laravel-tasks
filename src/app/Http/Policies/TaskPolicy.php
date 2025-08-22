@@ -9,22 +9,17 @@ class TaskPolicy
 {
     public function view(User $user, Task $task): bool
     {
-        // właściciel lub obserwator ma dostęp do odczytu
         return $task->user_id === $user->id
             || $task->observers()->whereKey($user->id)->exists();
-
     }
 
     public function update(User $user, Task $task): bool
     {
-        // tylko właściciel może modyfikować
         return $task->user_id === $user->id;
-
     }
 
     public function delete(User $user, Task $task): bool
     {
-        // tylko właściciel może usuwać
         return $task->user_id === $user->id;
     }
 
@@ -32,5 +27,4 @@ class TaskPolicy
     {
         return $task->user_id === $user->id;
     }
-
 }

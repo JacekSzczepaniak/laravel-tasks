@@ -19,14 +19,12 @@ class TaskPolicy
 
     public function view(User $u, Task $t): bool
     {
-        // właściciel lub obserwator może zobaczyć
         return $t->user_id === $u->id
             || $t->observers()->whereKey($u->id)->exists();
     }
 
     public function update(User $u, Task $t): bool
     {
-        // aktualizować może tylko właściciel
         return $t->user_id === $u->id;
     }
 
