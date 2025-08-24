@@ -13,10 +13,8 @@ Zawiera moduł zarządzania zadaniami (CRUD, filtry, przypisywanie obserwatorów
 - Workflow developerski (Make)
 - Architektura i założenia
 - Stos technologiczny
-- API i dokumentacja
+- DevOps / CI/CD
 - Testy
-- Frontend (assets)
-- Migracje i dane przykładowe
 - Troubleshooting
 - Roadmap
 
