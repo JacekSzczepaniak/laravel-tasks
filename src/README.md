@@ -73,9 +73,7 @@ Skopiuj `.env.example` do `.env` i uzupełnij kluczowe ustawienia:
 Najważniejsze zmienne:
 - APP_ENV, APP_DEBUG, APP_URL (np. http://localhost:8080)
 - DB_CONNECTION, DB_HOST, DB_PORT, DB_DATABASE, DB_USERNAME, DB_PASSWORD
-- CACHE_DRIVER, QUEUE_CONNECTION
-- (opcjonalnie) MAIL_MAILER, MAIL_HOST, MAIL_PORT, MAIL_USERNAME, MAIL_PASSWORD
-
+- CACHE_DRIVER
 ---
 
 ## 🧑‍💻 Workflow developerski (Make)
@@ -84,10 +82,10 @@ Najczęściej używane komendy:
 - make up — uruchomienie środowiska
 - make down — zatrzymanie środowiska
 - make composer-install — instalacja zależności PHP
-- make cs-fix — formatowanie kodu (PHP CS Fixer)
+- make cs-fixer — formatowanie kodu (PHP CS Fixer)
 - make phpstan — analiza statyczna kodu
-- make test — uruchomienie testów (PHPUnit / Pest)
-- make docs — generowanie dokumentacji OpenAPI (l5-swagger)
+- make pest — uruchomienie testów (PHPUnit / Pest)
+- make swagger-generate — generowanie dokumentacji OpenAPI (l5-swagger)
 
 ---
 
@@ -130,21 +128,6 @@ OpenAPI (l5-swagger) – automatyczna dokumentacja API
 
 (opcjonalnie) integracja z GitHub Actions / pipeline CI (do dopisania)
 
-## 🗃 Migracje i dane przykładowe
-
-- Migracje:
-  ```bash
-  make migrate
-  ```
-- Dane przykładowe (seedy):
-  ```bash
-  make seed
-  ```
-- Reset bazy (opcjonalnie — ostrożnie):
-  ```bash
-  php artisan migrate:fresh --seed
-  ```
-
 ---
 
 ## ✅ Testy
@@ -170,10 +153,10 @@ OpenAPI (l5-swagger) – automatyczna dokumentacja API
 
 - Po zmianie `.env` zrestartuj kontenery lub wyczyść cache:
   ```bash
-  php artisan config:clear
-  php artisan cache:clear
-  php artisan route:clear
-  php artisan view:clear
+  make cache-clear
+  make config-clear
+  make route-clear
+  make view-clear
   ```
 - Port 8080 zajęty? Zmień publikowany port w `docker-compose.yml` i w `APP_URL`.
 - Problemy z uprawnieniami storage/cache:
