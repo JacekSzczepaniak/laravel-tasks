@@ -22,7 +22,6 @@ WORKDIR /var/www/html
 # (opcjonalnie) cache dla composera
 RUN mkdir -p /var/www/.composer && chown -R www-data:www-data /var/www
 
-# jeżeli chcesz, żeby npm pisał jako www-data (czasem lepiej root; patrz uwagi poniżej)
 USER www-data
 
 CMD ["php-fpm"]
