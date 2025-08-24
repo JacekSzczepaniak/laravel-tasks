@@ -40,7 +40,7 @@ Zawiera moduł zarządzania zadaniami (CRUD, filtry, przypisywanie obserwatorów
    
 2. Uruchom środowisko Dockera:
     ```bash
-    make up
+    make build
     ```
 
 3. Zainstaluj zależności PHP:
