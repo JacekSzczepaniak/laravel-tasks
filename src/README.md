@@ -1,61 +1,195 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Laravel Tasks
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Projekt demonstracyjny (proof of concept) aplikacji opartej o **Laravel 12**, przygotowany w architekturze **heksagonalnej** (DDD-inspired).  
+Zawiera moduł zarządzania zadaniami (CRUD, filtry, przypisywanie obserwatorów) z prostym frontendem opartym o **Livewire**.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Spis treści
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- Wymagania
+- Szybki start (Docker)
+- Konfiguracja (.env)
+- Workflow developerski (Make)
+- Architektura i założenia
+- Stos technologiczny
+- API i dokumentacja
+- Testy
+- Frontend (assets)
+- Migracje i dane przykładowe
+- Troubleshooting
+- Roadmap
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## 📦 Wymagania
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+- Docker + Docker Compose
+- Make (zalecane do obsługi workflow)
+- PHP 8.2+ (jeśli uruchamiane bez Dockera)
+- Node.js 20+ (kompilacja assetów, jeśli potrzebna)
+- Composer 2
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+---
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## 🚀 Uruchomienie na nowym środowisku
 
-## Laravel Sponsors
+1. Sklonuj repozytorium:
+   ```bash
+   git clone git@github.com:JacekSzczepaniak/laravel-tasks.git
+   cd laravel-tasks
+   ```
+   
+2. Uruchom środowisko Dockera:
+    ```bash
+    make up
+    ```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+3. Zainstaluj zależności PHP:
 
-### Premium Partners
+    ```bash
+    make composer-install
+    ```
+4. Skonfiguruj plik `.env` (patrz sekcja Konfiguracja) i wygeneruj klucz:
+   ```bash
+   php artisan key:generate
+   ```
+5. Migracje i dane przykładowe:
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+    ```bash
+    make migrate
+    make seed
+    ```
+6. Aplikacja dostępna będzie pod adresem:
 
-## Contributing
+   - http://localhost:8080
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+---
 
-## Code of Conduct
+## ⚙️ Konfiguracja (.env)
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Skopiuj `.env.example` do `.env` i uzupełnij kluczowe ustawienia:
 
-## Security Vulnerabilities
+Najważniejsze zmienne:
+- APP_ENV, APP_DEBUG, APP_URL (np. http://localhost:8080)
+- DB_CONNECTION, DB_HOST, DB_PORT, DB_DATABASE, DB_USERNAME, DB_PASSWORD
+- CACHE_DRIVER, QUEUE_CONNECTION
+- (opcjonalnie) MAIL_MAILER, MAIL_HOST, MAIL_PORT, MAIL_USERNAME, MAIL_PASSWORD
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+---
 
-## License
+## 🧑‍💻 Workflow developerski (Make)
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Najczęściej używane komendy:
+- make up — uruchomienie środowiska
+- make down — zatrzymanie środowiska
+- make composer-install — instalacja zależności PHP
+- make cs-fix — formatowanie kodu (PHP CS Fixer)
+- make phpstan — analiza statyczna kodu
+- make test — uruchomienie testów (PHPUnit / Pest)
+- make docs — generowanie dokumentacji OpenAPI (l5-swagger)
+
+---
+
+## 🏗 Architektura i założenia
+
+Architektura heksagonalna – warstwa domenowa oddzielona od frameworka
+
+CQRS-lite – komendy/aplikacje obsługują logikę (np. CreateTask, UpdateTask)
+
+Encje domenowe – reprezentują biznesowe TaskEntity
+
+Adaptery infrastrukturalne – Eloquent jako repozytoria danych
+
+Livewire – warstwa prezentacji (komponenty, paginacja, formularze)
+
+REST API – dostęp do zasobów w warstwie kontrolerów, zgodny z OpenAPI
+
+## 🔧 Stos technologiczny
+
+- Backend: Laravel 12, Eloquent ORM
+- Prezentacja: Livewire, Blade
+- Frontend: Vite, TailwindCSS, Alpine.js
+- Narzędzia jakości: PHP CS Fixer, PHPStan
+- Testy: PHPUnit, Pest
+- Dokumentacja API: l5-swagger (OpenAPI)
+
+## ⚙️ DevOps / CI/CD
+
+Docker Compose – uruchamianie środowiska developerskiego
+
+Makefile – spójny workflow developerski
+
+PHPUnit + Pest – testy jednostkowe i integracyjne
+
+PHPStan – analiza statyczna
+
+PHP CS Fixer – automatyczne formatowanie kodu
+
+OpenAPI (l5-swagger) – automatyczna dokumentacja API
+
+(opcjonalnie) integracja z GitHub Actions / pipeline CI (do dopisania)
+
+## 🗃 Migracje i dane przykładowe
+
+- Migracje:
+  ```bash
+  make migrate
+  ```
+- Dane przykładowe (seedy):
+  ```bash
+  make seed
+  ```
+- Reset bazy (opcjonalnie — ostrożnie):
+  ```bash
+  php artisan migrate:fresh --seed
+  ```
+
+---
+
+## ✅ Testy
+
+- Uruchomienie testów:
+  ```bash
+  make pest
+  ```
+  (Make uruchamia testy niezależnie od tego, czy scenariusze są w PHPUnit czy w Pest.)
+- Analiza statyczna:
+  ```bash
+  make phpstan
+  ```
+- Formatowanie:
+  ```bash
+  make cs-check
+  make cs-fixer
+  ```
+
+---
+
+## 🛠 Troubleshooting
+
+- Po zmianie `.env` zrestartuj kontenery lub wyczyść cache:
+  ```bash
+  php artisan config:clear
+  php artisan cache:clear
+  php artisan route:clear
+  php artisan view:clear
+  ```
+- Port 8080 zajęty? Zmień publikowany port w `docker-compose.yml` i w `APP_URL`.
+- Problemy z uprawnieniami storage/cache:
+  ```bash
+  php artisan storage:link
+  chmod -R 777 storage bootstrap/cache
+  ```
+
+---
+
+## 📖 Roadmap
+
+- ✅ CRUD dla zadań
+- ✅ Filtrowanie i paginacja
+- ✅ Livewire + UI
+- ✅ OpenAPI docs
+- Uzupełnienie testów end-to-end
+- Deployment (CI/CD pipeline)
+- Rozszerzenie domeny o dodatkowe moduły
