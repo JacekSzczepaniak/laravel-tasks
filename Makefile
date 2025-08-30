@@ -1,6 +1,7 @@
 # ===== Konfiguracja =====
 COMPOSE = docker compose
-APP = $(COMPOSE) exec app
+APP_SERVICE ?= app
+APP = $(COMPOSE) exec $(APP_SERVICE)
 NODE = $(COMPOSE) exec node
 
 # ===== Help =====
@@ -24,20 +25,20 @@ bash: ## Wejdź do kontenera aplikacji (bash)
 
 # ===== Jakość kodu =====
 phpstan: ## Uruchom analizę PHPStan
-	$(APP) vendor/bin/phpstan analyse
+	$(COMPOSE) exec $(APP_SERVICE) vendor/bin/phpstan analyse || $(COMPOSE) run --rm $(APP_SERVICE) vendor/bin/phpstan analyse
 
 cs-fixer: ## Napraw kod PHP-CS-Fixerem
-	$(APP) vendor/bin/php-cs-fixer fix --allow-risky=yes
+	$(COMPOSE) exec $(APP_SERVICE) vendor/bin/php-cs-fixer fix --allow-risky=yes || $(COMPOSE) run --rm $(APP_SERVICE) vendor/bin/php-cs-fixer fix --allow-risky=yes
 
 cs-check: ## Sprawdź kod PHP-CS-Fixerem bez zmian
-	$(APP) vendor/bin/php-cs-fixer fix --dry-run --diff
+	$(COMPOSE) exec $(APP_SERVICE) vendor/bin/php-cs-fixer fix --dry-run --diff || $(COMPOSE) run --rm $(APP_SERVICE) vendor/bin/php-cs-fixer fix --dry-run --diff
 
 # ===== Migracje / seedy =====
 migrate: ## Wykonaj migracje bazy
-	$(APP) php artisan migrate
+	$(COMPOSE) exec $(APP_SERVICE) php artisan migrate || $(COMPOSE) run --rm $(APP_SERVICE) php artisan migrate
 
 seed: ## Uruchom seedery bazy
-	$(APP) php artisan db:seed
+	$(COMPOSE) exec $(APP_SERVICE) php artisan db:seed || $(COMPOSE) run --rm $(APP_SERVICE) php artisan db:seed
 
 # ===== Vite / Node =====
 npm-install: ## Zainstaluj paczki NPM w kontenerze node (npm ci)
@@ -51,34 +52,34 @@ vite-build: ## Zbuduj assety (Vite build)
 
 # ===== Artisan =====
 artisan: ## Uruchom dowolną komendę Artisan, np. make artisan ARGS="cache:clear"
-	$(APP) php artisan $(ARGS)
+	$(COMPOSE) exec $(APP_SERVICE) php artisan $(ARGS) || $(COMPOSE) run --rm $(APP_SERVICE) php artisan $(ARGS)
 
 # ===== Cache management =====
 cache-clear: ## Wyczyść cache aplikacji
-	$(APP) php artisan cache:clear
+	$(COMPOSE) exec $(APP_SERVICE) php artisan cache:clear || $(COMPOSE) run --rm $(APP_SERVICE) php artisan cache:clear
 
 config-clear: ## Wyczyść cache konfiguracji
-	$(APP) php artisan config:clear
+	$(COMPOSE) exec $(APP_SERVICE) php artisan config:clear || $(COMPOSE) run --rm $(APP_SERVICE) php artisan config:clear
 
 route-clear: ## Wyczyść cache tras
-	$(APP) php artisan route:clear
+	$(COMPOSE) exec $(APP_SERVICE) php artisan route:clear || $(COMPOSE) run --rm $(APP_SERVICE) php artisan route:clear
 
 view-clear: ## Wyczyść cache widoków
-	$(APP) php artisan view:clear
+	$(COMPOSE) exec $(APP_SERVICE) php artisan view:clear || $(COMPOSE) run --rm $(APP_SERVICE) php artisan view:clear
 
 # ===== Testy =====
 phpunit: ## Uruchom testy PHPUnit, np. make phpunit ARGS="--filter MyTest"
-	$(APP) vendor/bin/phpunit $(ARGS)
+	$(COMPOSE) exec $(APP_SERVICE) vendor/bin/phpunit $(ARGS) || $(COMPOSE) run --rm $(APP_SERVICE) vendor/bin/phpunit $(ARGS)
 
 pest: ## Uruchom testy Pest, np. make pest ARGS="--filter MyTest"
-	$(APP) vendor/bin/pest $(ARGS)
+	$(COMPOSE) exec $(APP_SERVICE) vendor/bin/pest $(ARGS) || $(COMPOSE) run --rm $(APP_SERVICE) vendor/bin/pest $(ARGS)
 
 # ===== Artisan serve (bez Nginxa) =====
 serve: ## Uruchom wbudowany serwer Laravel na :8000 (bez Nginxa)
-	$(COMPOSE) run --rm -p 8000:8000 app php artisan serve --host=0.0.0.0 --port=8000
+	$(COMPOSE) run --rm -p 8000:8000 $(APP_SERVICE) php artisan serve --host=0.0.0.0 --port=8000
 
 swagger-generate: ## Generuj OpenAPI (l5-swagger)
-	$(APP) php artisan l5-swagger:generate
+	$(COMPOSE) exec $(APP_SERVICE) php artisan l5-swagger:generate || $(COMPOSE) run --rm $(APP_SERVICE) php artisan l5-swagger:generate
 
 swagger-open: ## Podaj URL dokumentacji
 	@echo "➡  http://localhost:8080/api/documentation"
