@@ -1,158 +1,176 @@
-# API w Laravel 12 z Dockerem
+# Laravel Tasks
 
-Projekt z Dockerem, Sanctum, modułem People + Contacts (1:N), wysyłką maili (Mailpit) oraz dokumentacją Swagger (l5-swagger).
+Projekt demonstracyjny (proof of concept) aplikacji opartej o **Laravel 12**, przygotowany w architekturze **heksagonalnej** (DDD-inspired).  
+Zawiera moduł zarządzania zadaniami (CRUD, filtry, przypisywanie obserwatorów) z prostym frontendem opartym o **Livewire**.
 
-## Stos
+---
 
-- PHP 8.x / Laravel 12
-- MySQL 8 (container: `mysql-api`)
-- Redis 7 (container: `redis-api`)
-- Mailpit (podgląd e-maili)
-- Laravel Sanctum (Bearer token)
-- l5-swagger (OpenAPI)
-- Docker Compose
+## Spis treści
 
-## Wymagania
+- Wymagania
+- Szybki start (Docker)
+- Konfiguracja (.env)
+- Workflow developerski (Make)
+- Architektura i założenia
+- Stos technologiczny
+- DevOps / CI/CD
+- Testy
+- Troubleshooting
+- Roadmap
+
+---
+
+## 📦 Wymagania
 
 - Docker + Docker Compose
-- (opcjonalnie) `make` — jeśli chcesz używać gotowych celów
+- Make (zalecane do obsługi workflow)
+- PHP 8.2+ (jeśli uruchamiane bez Dockera)
+- Node.js 20+ (kompilacja assetów, jeśli potrzebna)
+- Composer 2
 
-## Szybki start
+---
 
-### 0) Klon i instalacja zależności
+## 🚀 Uruchomienie na nowym środowisku
 
-```
-git clone <URL_REPO> laravel-api
-cd laravel-api
-```
+1. Sklonuj repozytorium:
+   ```bash
+   git clone git@github.com:JacekSzczepaniak/laravel-tasks.git
+   cd laravel-tasks
+   ```
+   
+2. Uruchom środowisko Dockera:
+    ```bash
+    make build
+    ```
 
-### 1) Plik środowiskowy
-  ``` cp .env.example .env```
+3. Zainstaluj zależności PHP:
 
+    ```bash
+    make composer-install
+    ```
+4. Skonfiguruj plik `.env` (patrz sekcja Konfiguracja) i wygeneruj klucz:
+   ```bash
+   php artisan key:generate
+   ```
+5. Migracje i dane przykładowe:
 
-Najważniejsze wartości dla dockera (sugerowane):
-```
-APP_NAME=Laravel API
-APP_ENV=local
-APP_DEBUG=true
-APP_URL=http://localhost:8080
+    ```bash
+    make migrate
+    make seed
+    ```
+6. Aplikacja dostępna będzie pod adresem:
 
-# DB (kontener mysql-api)
-DB_CONNECTION=mysql
-DB_HOST=mysql-api
-DB_PORT=3306
-DB_DATABASE=laravel_api
-DB_USERNAME=laravel
-DB_PASSWORD=laravel
+   - http://localhost:8080
 
-# Redis (kontener redis-api)
-REDIS_HOST=redis-api
-REDIS_PORT=6379
+---
 
-# Mailpit
-MAIL_MAILER=smtp
-MAIL_HOST=mailpit
-MAIL_PORT=1025
-MAIL_FROM_ADDRESS=noreply@example.test
-MAIL_FROM_NAME="${APP_NAME}"
+## ⚙️ Konfiguracja (.env)
 
-# Kolejka (na start możesz zostawić sync)
-QUEUE_CONNECTION=sync
-```
+Skopiuj `.env.example` do `.env` i uzupełnij kluczowe ustawienia:
 
-### 2) Uruchom kontenery
+Najważniejsze zmienne:
+- APP_ENV, APP_DEBUG, APP_URL (np. http://localhost:8080)
+- DB_CONNECTION, DB_HOST, DB_PORT, DB_DATABASE, DB_USERNAME, DB_PASSWORD
+- CACHE_DRIVER
+---
 
-a) Makefile
+## 🧑‍💻 Workflow developerski (Make)
 
-```make up```
+Najczęściej używane komendy:
+- make up — uruchomienie środowiska
+- make down — zatrzymanie środowiska
+- make composer-install — instalacja zależności PHP
+- make cs-fixer — formatowanie kodu (PHP CS Fixer)
+- make phpstan — analiza statyczna kodu
+- make pest — uruchomienie testów (PHPUnit / Pest)
+- make swagger-generate — generowanie dokumentacji OpenAPI (l5-swagger)
 
-b) Czysty docker compose
+---
 
-```docker compose up -d --build```
+## 🏗 Architektura i założenia
 
-### 3) Composer + key
-```   
-docker compose exec app-api composer install
-docker compose exec app-api php artisan key:generate
-```
+Architektura heksagonalna – warstwa domenowa oddzielona od frameworka
 
-### 4) Migracje + seedy (admin + przykładowe osoby/kontakty)
-   ```docker compose exec app-api php artisan migrate:fresh --seed```
+CQRS-lite – komendy/aplikacje obsługują logikę (np. CreateTask, UpdateTask)
 
-### 5) Dokumentacja API (Swagger)
+Encje domenowe – reprezentują biznesowe TaskEntity
 
-Wygeneruj:
+Adaptery infrastrukturalne – Eloquent jako repozytoria danych
 
-```
-docker compose exec app-api php artisan l5-swagger:generate
-```
+Livewire – warstwa prezentacji (komponenty, paginacja, formularze)
 
-Otwórz UI:
-http://localhost:8080/docs
-(JSON: http://localhost:8080/api/documentation)
+REST API – dostęp do zasobów w warstwie kontrolerów, zgodny z OpenAPI
 
-### 6) Testy
+## 🔧 Stos technologiczny
 
-```make test```
+- Backend: Laravel 12, Eloquent ORM
+- Prezentacja: Livewire, Blade
+- Frontend: Vite, TailwindCSS, Alpine.js
+- Narzędzia jakości: PHP CS Fixer, PHPStan
+- Testy: PHPUnit, Pest
+- Dokumentacja API: l5-swagger (OpenAPI)
 
+## ⚙️ DevOps / CI/CD
 
-### 7) Podgląd e-maili
+Docker Compose – uruchamianie środowiska developerskiego
 
-Mailpit UI: http://localhost:8025
-SMTP dla aplikacji: host mailpit, port 1025.
+Makefile – spójny workflow developerski
 
-Uwierzytelnianie (Sanctum)
+PHPUnit + Pest – testy jednostkowe i integracyjne
 
-Rejestracja
-```
-curl -X POST http://localhost:8080/api/v1/auth/register \
--H "Content-Type: application/json" \
--d '{"name":"Alice","email":"alice@example.com","password":"password"}'
-```
+PHPStan – analiza statyczna
 
-Logowanie (token)
+PHP CS Fixer – automatyczne formatowanie kodu
 
-```
-curl -X POST http://localhost:8080/api/v1/auth/login \
--H "Content-Type: application/json" \
--d '{"email":"alice@example.com","password":"password"}'
-# => {"token":"<BEARER>"}
-```
+OpenAPI (l5-swagger) – automatyczna dokumentacja API
 
-Autoryzacja
+(opcjonalnie) integracja z GitHub Actions / pipeline CI (do dopisania)
 
-```
-curl -H "Authorization: Bearer <BEARER>" http://localhost:8080/api/v1/auth/me
-```
-Wylogowanie (unieważnia token)
+---
 
-```
-curl -X POST -H "Authorization: Bearer <BEARER>" \
-http://localhost:8080/api/v1/auth/logout
-```
+## ✅ Testy
 
-Harmonogram:
+- Uruchomienie testów:
+  ```bash
+  make pest
+  ```
+  (Make uruchamia testy niezależnie od tego, czy scenariusze są w PHPUnit czy w Pest.)
+- Analiza statyczna:
+  ```bash
+  make phpstan
+  ```
+- Formatowanie:
+  ```bash
+  make cs-check
+  make cs-fixer
+  ```
 
-Upewnij się, że scheduler używa tej samej budowanej aplikacji co app-api.
-Jeśli wcześniej miałeś błąd “pull access denied for app-api”, albo ustaw zmienną APP_IMAGE przy buildzie, albo zmień definicję scheduler, by korzystała z build context tak jak app-api.
+---
 
-Alternatywnie uruchamiaj ręcznie:
+## 🛠 Troubleshooting
 
-```docker compose exec app-api php artisan schedule:work```
+- Po zmianie `.env` zrestartuj kontenery lub wyczyść cache:
+  ```bash
+  make cache-clear
+  make config-clear
+  make route-clear
+  make view-clear
+  ```
+- Port 8080 zajęty? Zmień publikowany port w `docker-compose.yml` i w `APP_URL`.
+- Problemy z uprawnieniami storage/cache:
+  ```bash
+  php artisan storage:link
+  chmod -R 777 storage bootstrap/cache
+  ```
 
-Dev narzędzia
+---
 
-Wyczyszczanie cache’ów:
+## 📖 Roadmap
 
-```docker compose exec app-api php artisan optimize:clear```
-
-
-Przebudowa autoloadera:
-
-```docker compose exec app-api composer dump-autoload```
-
-
-Logi:
-
-```docker compose logs -f app-api```
-
+- ✅ CRUD dla zadań
+- ✅ Filtrowanie i paginacja
+- ✅ Livewire + UI
+- ✅ OpenAPI docs
+- Uzupełnienie testów end-to-end
+- Deployment (CI/CD pipeline)
+- Rozszerzenie domeny o dodatkowe moduły
